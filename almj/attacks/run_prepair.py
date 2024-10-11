@@ -3,7 +3,6 @@ import dataclasses
 import logging
 import os
 import pathlib
-import re
 import time
 import traceback
 from datetime import datetime
@@ -17,10 +16,12 @@ from pydub import AudioSegment
 from termcolor import cprint
 from tqdm.auto import tqdm
 
-from almj.apis.tts.elevenlabs import generate_tts_audio_from_text as elevenlabs_generate_tts_audio_from_text
+from almj.apis.tts.elevenlabs import generate_tts_audio_from_text
+from almj.apis.tts.utils import split_text
 from almj.classifiers.run_classifier import get_model_response as get_classifier_response
 from almj.data_models.messages import ChatMessage, MessageRole, Prompt
 from almj.utils import utils
+from almj.utils.audio_utils import create_silent_audio
 from almj.utils.experiment_utils import ExperimentConfigBase
 from almj.utils.utils import load_secrets
 
@@ -45,6 +46,7 @@ class ExperimentConfig(ExperimentConfigBase):
     universal_score: bool = True
     requests_per_minute: int = 10
     mode_transfers: list[str] | str | None = None  # eg. ["audio-audio", "text-text"] or "audio-audio" or None
+    limit_batches: int | None = None
 
     # Pair config
     n_steps: int = 10
@@ -72,7 +74,7 @@ class ExperimentConfig(ExperimentConfigBase):
     target_system_prompt: str | None = "pair/e2e/target_system.jinja"
 
     # Audio
-    audio_dir: pathlib.Path = pathlib.Path("/mnt/jailbreak-defense/exp/audio/240830_batched_pair/")
+    audio_dir: pathlib.Path = pathlib.Path("./exp/prepair/audio")
     semaphore_limit: int = 5
     semaphore: asyncio.Semaphore | None = None  # don't touch
     tts_client: AsyncElevenLabs | None = None
@@ -126,54 +128,15 @@ class BatchedPairStep(pydantic.BaseModel):
     num_hits: int
 
 
-def split_text(text, max_length=400):
-    sentences = re.split("(?<=[.!?]) +", text)
-    chunks = []
-    current_chunk = ""
-
-    for sentence in sentences:
-        if len(current_chunk) + len(sentence) <= max_length:
-            current_chunk += sentence + " "
-        else:
-            if current_chunk:
-                chunks.append(current_chunk.strip())
-            current_chunk = sentence + " "
-
-        # Check if the current sentence alone exceeds max_length
-        if len(sentence) > max_length:
-            # Split the sentence into smaller chunks
-            while len(sentence) > max_length:
-                chunks.append(sentence[:max_length])
-                sentence = sentence[max_length:]
-            if sentence:
-                current_chunk = sentence + " "
-
-    if current_chunk:
-        chunks.append(current_chunk.strip())
-
-    # Ensure no chunk exceeds max_length
-    return [chunk[:max_length] for chunk in chunks]
-
-
 def get_num_hits(scores: list[float]) -> int:
     return sum(score > 0 for score in scores)
 
 
-def create_silent_audio(cfg: ExperimentConfig, duration_ms: int = 3000) -> str:
-    silent_file = cfg.audio_dir / f"silent_{duration_ms}ms.wav"
-    if not silent_file.exists():
-        silent_segment = AudioSegment.silent(duration=duration_ms)
-        silent_segment.export(silent_file, format="wav")
-    return str(silent_file)
-
-
 async def create_audio(cfg: ExperimentConfig, text: str, character_limit: int = 1000) -> str:
     async with cfg.semaphore:
-        generate_tts_audio = elevenlabs_generate_tts_audio_from_text
-
         for attempt in range(cfg.tts_max_retries):
             try:
-                audio_file = await generate_tts_audio(
+                audio_file = await generate_tts_audio_from_text(
                     text,
                     cfg.audio_dir,
                     convert_to_wav=False,
@@ -188,7 +151,7 @@ async def create_audio(cfg: ExperimentConfig, text: str, character_limit: int = 
                     await asyncio.sleep(delay)
                 else:
                     LOGGER.error("Max retries reached. Unable to generate audio. Using silent audio.")
-                    return create_silent_audio(cfg)
+                    return create_silent_audio(cfg.audio_dir)
 
 
 async def create_target_prompt(
@@ -236,7 +199,6 @@ async def create_target_prompt(
             messages.append(ChatMessage(role=MessageRole.user, content=request))
 
         elif attack_type == "audio" and request_type == "audio":
-            LOGGER.info("check me please 0 - hacky but works for now")
             attack_chunks = split_text(attack, max_length=1000)
             attack_audio_segments = []
             for i in range(len(attack_chunks)):
@@ -256,7 +218,6 @@ async def create_target_prompt(
                     LOGGER.info(f"Adding request segment to combined audio, iteration {_}")
                     combined_audio += request_segment
             else:
-                LOGGER.info("check me please 1")
                 combined_audio += request_segment
             combined_audio.export(combined_file, format="wav")
             LOGGER.info(f"Attack audio file size: {os.path.getsize(attack_audio)}")
@@ -502,9 +463,6 @@ async def evaluate_attack(
         "voice": "Rachel",
         "request_repeats": request_repeats,
         "model_outputs": model_outputs,
-        # "init_attack_path": cfg.init_attack_path,
-        # "system_prompt": cfg.target_system_prompt,
-        # "datetime": datetime.now().strftime("%Y%m%d_%H%M%S"),
     }
 
     if cfg.mode_transfers is not None:
@@ -689,6 +647,7 @@ async def evaluate_and_save_universal_score(
 
 async def run_batched_pair(input_obj: dict, idx: int, cfg: ExperimentConfig) -> dict:
     try:
+        cprint(f"Starting run_batched_pair for batch {idx}", "cyan")
         pair_steps: list[BatchedPairStep] = []
 
         attacker_improvement = "Use initial requests"
@@ -717,11 +676,13 @@ async def run_batched_pair(input_obj: dict, idx: int, cfg: ExperimentConfig) -> 
         input_obj["prefix_attacks"] = []
 
         for n in range(cfg.n_steps):
+            cprint(f"Step {n+1}/{cfg.n_steps} for batch {idx}", "cyan")
             attacker_output = await get_attacker_model_response(
                 attacker_prompt=attacker_prompt,
                 cfg=cfg,
             )
             if attacker_output is None:
+                cprint(f"Error: Attacker output is None at step {n+1} for batch {idx}", "red")
                 return input_obj | {
                     "pair_steps": [x.model_dump() for x in pair_steps],
                     "state": "error_attacker",
@@ -769,6 +730,7 @@ async def run_batched_pair(input_obj: dict, idx: int, cfg: ExperimentConfig) -> 
                 )
 
             if pair_step.mean_score == 10:
+                cprint(f"Batch {idx} fooled at step {n+1}", "green")
                 return end_step(
                     n=n,
                     input_obj=input_obj,
@@ -785,9 +747,11 @@ async def run_batched_pair(input_obj: dict, idx: int, cfg: ExperimentConfig) -> 
         result["n_steps"] = cfg.n_steps
         result["init_requests"] = [request for request in input_obj["init_requests"]]
 
+        cprint(f"Finished run_batched_pair for batch {idx}", "cyan")
         return result
 
     except Exception as e:
+        cprint(f"Error in batch {idx}: {e}", "red")
         LOGGER.error(f"Error in batch {idx}: {e}")
         LOGGER.error(traceback.format_exc())
         return {
@@ -864,6 +828,9 @@ async def main(
         batched_obj = await create_batched_input_obj(cfg, input_objs, i)
         if batched_obj is not None:
             batched_input_objs.append(batched_obj)
+
+    if cfg.limit_batches is not None:
+        batched_input_objs = batched_input_objs[: cfg.limit_batches]
 
     cprint("-" * 100, "cyan")
     cprint("\n\n\nCONFIGS:", "blue")

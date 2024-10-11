@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from pathlib import Path
 from typing import Dict, List
 
@@ -61,3 +62,32 @@ def update_voice_dict(pulled_voices: List[Dict]):
 
     with open(voices_file_path, "w") as f:
         json.dump(voice_dict, f)
+
+
+def split_text(text, max_length=400):
+    sentences = re.split("(?<=[.!?]) +", text)
+    chunks = []
+    current_chunk = ""
+
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) <= max_length:
+            current_chunk += sentence + " "
+        else:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            current_chunk = sentence + " "
+
+        # Check if the current sentence alone exceeds max_length
+        if len(sentence) > max_length:
+            # Split the sentence into smaller chunks
+            while len(sentence) > max_length:
+                chunks.append(sentence[:max_length])
+                sentence = sentence[max_length:]
+            if sentence:
+                current_chunk = sentence + " "
+
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    # Ensure no chunk exceeds max_length
+    return [chunk[:max_length] for chunk in chunks]

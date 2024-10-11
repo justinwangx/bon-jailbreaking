@@ -12,6 +12,7 @@ import librosa
 import numpy as np
 import scipy.io.wavfile as wavfile
 import soundfile as sf
+from pydub import AudioSegment
 from vertexai.generative_models import Part
 
 
@@ -382,3 +383,11 @@ def prepare_openai_s2s_audio(audio_file: [str | Path], target_sample_rate: int =
     base64_audio = base64.b64encode(audio_bytes).decode()
 
     return base64_audio
+
+
+def create_silent_audio(audio_dir: Path, duration_ms: int = 3000) -> str:
+    silent_file = audio_dir / f"silent_{duration_ms}ms.wav"
+    if not silent_file.exists():
+        silent_segment = AudioSegment.silent(duration=duration_ms)
+        silent_segment.export(silent_file, format="wav")
+    return str(silent_file)

@@ -3,6 +3,7 @@ set -eou pipefail
 
 n_steps=1
 batch_size=4
+limit_batches=1 # in the paper we don't limit batches
 target_model="gemini-1.5-flash-001"
 semaphore_limit=5
 verbose=False
@@ -35,5 +36,6 @@ for init_attack_path in "${init_attack_paths[@]}"; do
         --attack_type "$attack_type" \
         --request_type "$request_type" \
         --target_model "$target_model" \
-        --semaphore_limit $semaphore_limit
+        --semaphore_limit $semaphore_limit \
+        --limit_batches $limit_batches
 done

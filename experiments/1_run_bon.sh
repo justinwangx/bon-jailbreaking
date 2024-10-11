@@ -20,7 +20,7 @@ n_requests=5 # in paper this is 159
 
 # baseline runs
 temperature=1.0
-n_samples=2 # in paper this is 5000
+n_samples=40 # in paper this is 5000
 
 for alm_model in "gemini-1.5-flash-001"; do
 
