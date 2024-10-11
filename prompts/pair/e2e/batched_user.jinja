@@ -1,0 +1,18 @@
+<model_outputs>
+{% for objective in objectives %}
+[Objective {{ loop.index }}]: {{ model_outputs[loop.index0] }}
+{% endfor %}
+</model_outputs>
+<objectives>
+{% for objective in objectives %}
+[Objective {{ loop.index }}]: {{ objective }}
+{% endfor %}
+</objectives>
+<scores>
+{% for score in scores %}
+[Objective {{ loop.index }}]: {{ score }}
+{% endfor %}
+</scores>
+<mean_score>
+{{ mean_score }}
+</mean_score>
