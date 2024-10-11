@@ -1,7 +1,7 @@
-# llm-jailbreaks
+# BoN Jailbreaking
 Contains code useful for jailbreaking LLMs.
 
-# Repository setup
+## Repository setup
 
 ### Environment
 
@@ -26,11 +26,6 @@ Or just run:
 
 3. Install Kaldi if on a new machine: ./scripts/install_kaldi.sh
 
-4. Pull submodules (optional but required for DiVA)
-    ```bash
-    git submodule update --init --recursive
-    ```
-
 ### Secrets
 
 You should create a file called `SECRETS` at the root of the repository
@@ -42,17 +37,13 @@ OPENAI_ORG=<openai-org-id>
 GOOGLE_API_KEY=<your-key>
 GOOGLE_PROJECT_ID=<GCP-project-name>
 GOOGLE_PROJECT_REGION=<GCP-project-region>
-
-# Optional
-RUNPOD_API_KEY=<your-key> # required for GPU access for DiVA
-ELEVENLABS_API_KEY=<your-key> # required for ElevenLabs TTS
-ANTHROPIC_API_KEY=<your-key>
+ELEVENLABS_API_KEY=<your-key> # required for ElevenLabs TTS (used in PrePAIR)
 ```
 
-### Replicate experiments
+## Replicate experiments
 
-To replicate the experiments in the paper, run the scripts in the `paper_runs` directory. For example, to replicate Figure 1, run the following:
+To replicate the experiments in the paper, run the scripts in the `experiments` directory. For example, to replicate Figure 1, run the following:
 
 ```bash
-bash paper_runs/1_run_bon.sh
+./experiments/1_run_bon.sh
 ```
