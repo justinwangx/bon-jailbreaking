@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+  <meta charset="UTF-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+  <title>Best-of-N Jailbreaking</title>
+
+  <meta name="description" content="Attacking Audio Language Models with Best-of-N Jailbreaking">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css">
+  <link rel="stylesheet" href="css/app.css">
+
+  <!-- <link rel="stylesheet" href="css/bootstrap.min.css"> -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.3/clipboard.min.js"></script>
+
+  <script src="js/app.js"></script>
+
+  <style>
+    .nav-pills {
+      position: relative;
+      display: inline;
+    }
+
+    .imtip {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container" id="main">
+    <div class="row">
+      <h2 class="col-md-12 text-center">
+        <b>
+          <font size="+6">Attacking Audio Language Models with<br>Best-of-N Jailbreaking</font>
+        </b>
+      <!-- </br>Attacking Audio Language Models with Best-of-N Jailbreaking</br> -->
+      </h2>
+    </div>
+    <div class="row">
+      <div class="col-md-12 text-center">
+        <ul class="list-inline">
+          <li><a href="https://www.jplhughes.com/" target="_blank" style="color: inherit;">John Hughes</a>*</li>
+          <li><a href="https://www.linkedin.com/in/sara-price-310757b2/" target="_blank" style="color: inherit;">Sara Price</a>*</li>
+          <li><a href="https://aengusl.github.io/aenguslynch.github.io/" target="_blank" style="color: inherit;">Aengus Lynch</a>*</li>
+        </ul>
+        <ul class="list-inline">
+          <li><a href="https://rylanschaeffer.github.io/" target="_blank" style="color: inherit;">Rylan Schaeffer</a></li>
+          <li><a href="https://fbarez.github.io/" target="_blank" style="color: inherit;">Fazl Barez</a></li>
+          <li><a href="https://cs.stanford.edu/~sanmi/" target="_blank" style="color: inherit;">Sanmi Koyejo</a></li>
+          <li><a href="https://www.linkedin.com/in/henry-sleight-406811227" target="_blank" style="color: inherit;">Henry Sleight</a></li>
+        </ul>
+        <ul class="list-inline">
+          <li><a href="https://ethanperez.net/" target="_blank" style="color: inherit;">Ethan Perez</a></li>
+          <li><a href="https://www.mrinanksharma.net/" target="_blank" style="color: inherit;">Mrinank Sharma</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-12 text-center">
+      <ul class="list-inline">
+        <li>
+          <img src="assets/banner.webp" style="width: 60%; height: auto;" class="img-responsive">
+        </li>
+      </ul>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2 text-center">
+        <h3>
+          <a href="https://drive.google.com/file/d/17c_DgejUgas9pXTpgoR3_18GEHc0vPPT/view?usp=sharing" target="_blank">Paper</a>
+          &nbsp;&nbsp;|&nbsp;&nbsp;
+          <a href="https://github.com/McHughes288/bon_jailbreaking" target="_blank">Code</a>
+          &nbsp;&nbsp;|&nbsp;&nbsp;
+          <a href="#examples" onclick="document.getElementById('widget-container').scrollIntoView();">Examples</a>
+          <!-- &nbsp;&nbsp;|&nbsp;&nbsp;
+          <a href="assets/poster.pdf" target="_blank">Poster</a> -->
+          <!-- &nbsp;&nbsp;|&nbsp;&nbsp; -->
+          <!-- <a href="" target="_blank">Video</a> -->
+        </h3>
+      </div>
+    </div>
+
+    <!-- <div class="row">
+      <div class="col-md-8 col-md-offset-2 text-center">
+        <h4>
+            Also, check out this
+            <a href="https://www.lesswrong.com" target="_blank">
+              blogpost
+            </a>
+            with our high-level takeaways on
+            mechinterp!</a>
+        </h4>
+      </div>
+    </div> -->
+
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <h3>
+          Abstract
+        </h3>
+        <p class="text-justify">
+          In this work, we investigate the susceptibility of Audio Language Models (ALMs)
+          to audio-based jailbreaks and introduce Best-of-N (BoN) Jailbreaking, a black-
+          box jailbreaking algorithm to extract harmful information from ALMs. To craft
+          jailbreak inputs, our approach samples audio augmentations and applies them to
+          malicious prompts. We repeat this process until we find a set of augmentations that
+          elicits a harmful response from the target ALM. Empirically, we find that applying
+          BoN with 7000 sampled augmentations achieves an attack success rate (ASR) of
+          over 60% on all models tested, including the preview model for the released GPT-
+          4o1. Furthermore, we uncover power laws that accurately predict the ASR of BoN
+          jailbreaking as a function of the number of samples. These power laws allow us
+          to forecast the effectiveness of BoN jailbreaking as a function of the number of
+          sampled augmentations over an order of magnitude. Finally, we show that BoN
+          jailbreaking can be composed with other black-box attack algorithms for even more
+          effective attacks—combining BoN with an optimized prefix attack achieves 98%
+          ASR on Gemini Pro and Flash. Overall, by exploiting stochastic sampling and
+          sensitivity to variations in a high-dimensional input space, we propose a scalable,
+          composable, and highly effective black-box algorithm for attacking SOTA ALMs.
+        </p>
+      </div>
+    </div>
+
+    
+
+    <div class="col-md-12 text-center" style="margin-top: 20px;">
+      <ul class="list-inline">
+        <li>
+          <img src="assets/intro_figure.png" style="width: 70%; height: auto;" class="img-responsive">
+        </li>
+      </ul>
+    </div>
+
+    <div class="col-md-8 col-md-offset-2" style="color: rgb(83, 83, 83); margin-top: 10px;">
+      <p>
+        <strong>Overview of BoN jailbreaking and its scaling behavior.</strong> <strong>(top)</strong> Overview of the BoN jailbreaking approach. In Stage 1, audio augmentations are defined and jailbreaking requests are prepared. In Stage 2, BoN is run on each request by applying randomly sampled augmentations, processing the transformed request with the ALM, and grading the response for harmfulness. <strong>(bottom left)</strong> ASR of BoN jailbreaking on the different ALMs as a function of the number of augmented sample attacks (N). On Gemini Flash model, we find that ASR increases from 2% to 77% after 7,200 sampled attacks, highlighting the effectiveness of BoN jailbreaking. <strong>(bottom right)</strong> Power-law scaling of the negative log ASR with respect to N for several ALMs. Dashed lines represent fitted power-law functions. All models achieve at least a 50% jailbreak success rate, with error bars produced via bootstrapping. We uncover consistent power-law behavior across models, which allows forecasting ASR at larger N from the initial steps of BoN jailbreaking.
+      </p>
+    </div>
+
+    <!-- create a widget that loads in the contents of assets/bon_jailbreaks.csv -->
+    <div id="widget-container" class="col-md-8 col-md-offset-2" style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+      <h3 class="text-center" style="margin-bottom: 20px; font-weight: 600;">Example Jailbreaks</h3>
+      <div class="form-group" style="display: inline-block; width: 48%; margin-right: 2%;">
+        <label for="model-filter" style="font-weight: 500;">Filter by model:</label>
+        <select id="model-filter" class="form-control" style="width: 100%;">
+          <option value="">All Models</option>
+        </select>
+      </div>
+      <div class="form-group" style="display: inline-block; width: 48%;">
+        <label for="behavior-filter" style="font-weight: 500;">Filter by behavior_id:</label>
+        <select id="behavior-filter" class="form-control" style="width: 100%;">
+          <option value="">All Behaviors</option>
+        </select>
+      </div>
+      <div id="entries-container" style="margin-top: 20px;"></div>
+      <div class="text-center" style="margin-top: 20px;">
+        <button id="prev-entry" class="btn btn-outline-primary" style="margin-right: 10px;">Previous</button>
+        <button id="next-entry" class="btn btn-outline-primary" style="margin-right: 10px;">Next</button>
+        <label for="entry-seek" style="font-weight: 500; margin-right: 10px;">Go to entry:</label>
+        <input type="number" id="entry-seek" class="form-control" style="display: inline-block; width: auto; margin-right: 10px;" min="1">
+        <button id="seek-entry" class="btn btn-outline-primary">Go</button>
+      </div>
+      <div class="text-center" style="margin-top: 20px;">
+        <p id="entry-info" style="font-weight: 500;"></p>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        $.ajax({
+          type: "GET",
+          url: "assets/bon_jailbreaks.csv",
+          dataType: "text",
+          success: function(data) {
+            var csvData = Papa.parse(data, {header: true}).data;
+            var currentIndex = 0;
+
+            function displayEntry(entry, filteredLength) {
+              $('#entries-container').empty();
+              $('#entries-container').append(`
+                <div class="entry">
+                  <h4>Model: ${entry.model}</h4>
+                  <p><strong>Request:</strong> ${entry.direct_request}</p>
+                  <p><strong>Sampled augmentation values:</strong></p>
+                  <div class="row">
+                    <div class="col-md-4" style="padding-left: 40px;">
+                      <p>🏃🏽‍♀️ Speed: ${parseFloat(entry.speed).toFixed(2)}x</p>
+                    </div>
+                    <div class="col-md-4" style="padding-left: 40px;">
+                      <p>⚡ Pitch: ${(parseFloat(entry.pitch) / 100).toFixed(2)} semitones</p>
+                    </div>
+                    <div class="col-md-4" style="padding-left: 40px;">
+                      <p>🗣️ Speech: ${parseFloat(entry.speech).toFixed(2)}dB</p>
+                    </div>
+                    <div class="col-md-4" style="padding-left: 40px;">
+                      <p>🚗 Noise: ${parseFloat(entry.noise).toFixed(2)}dB</p>
+                    </div>
+                    <div class="col-md-4" style="padding-left: 40px;">
+                      <p>📢 Volume: ${parseFloat(entry.volume).toFixed(3)}x</p>
+                    </div>
+                    <div class="col-md-4" style="padding-left: 40px;">
+                      <p>🎹 Music: ${parseFloat(entry.music).toFixed(2)}dB</p>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p><strong>Vocalized Request:</strong></p>
+                      <audio controls>
+                        <source src="assets/${entry.audio_file}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                    <div class="col-md-6">
+                      <p><strong>Augmented Request:</strong></p>
+                      <audio controls>
+                        <source src="assets/${entry.augmented_file}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  </div>
+                  <p><strong>Model Response:</strong></p>
+                  <div style="background-color: white; padding: 10px; border: 1px solid #ddd; border-radius: 10px; max-height: 200px; overflow-y: auto;">
+                    <p>${entry.response.replace(/\n/g, '<br>')}</p>
+                  </div>
+                  <p style="font-size: 0.9em; color: #888;">Note: Responses are limited to 200 tokens.</p>
+                  ${entry.speech_out_file ? `<p><strong>Speech Output File:</strong></p><audio controls><source src="assets/${entry.speech_out_file}" type="audio/mpeg">Your browser does not support the audio element.</audio>` : ''}
+                </div>
+              `);
+              $('#entry-info').text(`Entry ${currentIndex + 1} of ${filteredLength}`);
+              $('#entry-seek').attr('max', filteredLength);
+            }
+
+            function updateEntry() {
+              var selectedModel = $('#model-filter').val();
+              var selectedBehavior = $('#behavior-filter').val();
+              var filteredEntries = csvData.filter(entry => {
+                return (!selectedModel || entry.model === selectedModel) && (!selectedBehavior || entry.behavior_id === selectedBehavior);
+              });
+              if (filteredEntries.length > 0) {
+                displayEntry(filteredEntries[currentIndex % filteredEntries.length], filteredEntries.length);
+              } else {
+                $('#entries-container').empty();
+                $('#entry-info').text('No entries found');
+              }
+            }
+
+            var models = [...new Set(csvData.map(entry => entry.model).filter(model => model))];
+            models.forEach(model => {
+              $('#model-filter').append(`<option value="${model}">${model}</option>`);
+            });
+
+            var behaviors = [...new Set(csvData.map(entry => entry.behavior_id).filter(behavior => behavior))];
+            behaviors.forEach(behavior => {
+              $('#behavior-filter').append(`<option value="${behavior}">${behavior}</option>`);
+            });
+
+            $('#model-filter').change(function() {
+              currentIndex = 0;
+              updateEntry();
+            });
+
+            $('#behavior-filter').change(function() {
+              currentIndex = 0;
+              updateEntry();
+            });
+
+            $('#next-entry').click(function() {
+              currentIndex++;
+              updateEntry();
+            });
+
+            $('#prev-entry').click(function() {
+              currentIndex = (currentIndex - 1 + csvData.length) % csvData.length;
+              updateEntry();
+            });
+
+            $('#seek-entry').click(function() {
+              var seekIndex = parseInt($('#entry-seek').val(), 10) - 1;
+              if (seekIndex >= 0 && seekIndex < csvData.length) {
+                currentIndex = seekIndex;
+                updateEntry();
+              }
+            });
+
+            updateEntry();
+          }
+        });
+      });
+    </script>
+
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <h3>
+          Citation
+        </h3>
+        <div class="form-group col-md-10 col-md-offset-1">
+          <textarea id="bibtex" class="form-control" readonly>
+@article{hughes2024bon,
+  title={Attacking Audio Language Models with Best-of-N Jailbreaking},
+  author={John Hughes and Sara Price and Aengus Lynch and Rylan Schaeffer and Fazl Barez and Sanmi Koyejo and Henry Sleight and Ethan Perez and Mrinank Sharma},
+  journal={arXiv preprint arXiv:TBC},
+  year={2024}
+}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <p class="text-justify">
+          This site's design is adapted from <a href="https://forbiddenfacts.github.io/" target="_blank">forbiddenfacts</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
