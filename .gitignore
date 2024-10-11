@@ -1,0 +1,32 @@
+# Python stuff
+*.egg-info
+.ruff_cache
+.pytest_cache
+.ipynb_checkpoints
+__pycache__
+
+.conda
+.venv
+
+# Mac stuff
+.DS_Store
+
+# wandb
+wandb
+
+# bon jailbreak stuff
+.cache
+.prompt_history
+*.logs
+logs/
+SECRETS
+exp
+.checkpoints
+data/musan
+data/RIRS_NOISES
+*.gz
+*.zip
+
+# IDE stuff.
+.idea/
+.vscode/
