@@ -71,11 +71,6 @@
       </div>
     </section>
 
-    <!-- Banner Image -->
-    <section class="col-md-12 text-center">
-      <img src="assets/banner.webp" style="width: 60%; height: auto;" class="img-responsive" alt="Banner image">
-    </section>
-
     <!-- Links -->
     <section class="row">
       <div class="col-md-8 col-md-offset-2 text-center">
@@ -129,6 +124,9 @@
       </p>
     </section>
 
+    <!-- Spacing -->
+    <section class="col-md-12" style="margin-top: 30px;"></section>
+
     <!-- Examples Widget -->
     <section id="widget-container" class="col-md-8 col-md-offset-2" style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
       <h3 class="text-center" style="margin-bottom: 20px; font-weight: 600;">Example Jailbreaks</h3>
@@ -142,6 +140,9 @@
       </ul>
 
       <!-- Filters -->
+      <p style="font-size: 0.9em; color: #888; margin-bottom: 15px;">
+        By default, all jailbreak examples across models and behaviors are shown. Use the dropdowns below to filter the results. You can choose to show responses from a specific model, or see how different models respond to a particular HarmBench behavior. Navigate between examples using the Previous/Next buttons, or jump directly to a specific example by entering its number and clicking Go. The current example number and total count based on your filters are shown on the right.
+      </p>
       <div class="form-group" style="display: inline-block; width: 48%; margin-right: 2%;">
         <label for="model-filter" style="font-weight: 500;">Filter by model:</label>
         <select id="model-filter" class="form-control">
@@ -174,8 +175,8 @@
         <div class="form-group col-md-10 col-md-offset-1">
           <textarea id="bibtex" class="form-control" readonly>
 @article{hughes2024bon,
-  title={Attacking Audio Language Models with Best-of-N Jailbreaking},
-  author={John Hughes and Sara Price and Aengus Lynch and Rylan Schaeffer and Fazl Barez and Sanmi Koyejo and Henry Sleight and Ethan Perez and Mrinank Sharma},
+  title={Best-of-N Jailbreaking},
+  author={John Hughes and Sara Price and Aengus Lynch and Rylan Schaeffer and Fazl Barez and Sanmi Koyejo and Henry Sleight and Erik Jones and Ethan Perez and Mrinank Sharma},
   journal={arXiv preprint arXiv:TBC},
   year={2024}
 }</textarea>

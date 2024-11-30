@@ -121,9 +121,9 @@ $(document).ready(function() {
           html += `
             <p><strong>Model Response:</strong></p>
             <div style="background-color: white; padding: 10px; border: 1px solid #ddd; border-radius: 10px;">
-              <p>${entry.response.replace(/\n/g, '<br>').split(' ').slice(0,50).join(' ')} [TRUNCATED]</p>
+              <p>${entry.response.replace(/\n/g, '<br>').substring(0, 75)} [TRUNCATED]</p>
             </div>
-            <p style="font-size: 0.9em; color: #888;">Note: responses are limited to 50 words to show evidence of jailbroken behavior without revealing all harmful content.</p>`;
+            <p style="font-size: 0.9em; color: #888;">Note: responses are limited to 75 characters to show evidence of jailbroken behavior without revealing all harmful content.</p>`;
 
           // Audio-specific speech output
           if (dataset === 'audio' && entry.speech_out_file) {
