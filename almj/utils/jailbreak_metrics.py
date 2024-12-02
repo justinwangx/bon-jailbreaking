@@ -7,8 +7,11 @@ import pandas as pd
 from tqdm.asyncio import tqdm_asyncio
 
 from almj.apis.inference.api import InferenceAPI
+from almj.apis.inference.openai.utils import GPT_CHAT_MODELS
 from almj.classifiers.run_classifier import get_model_response as get_classifier_response
+from almj.data_models.hashable import deterministic_hash
 from almj.data_models.messages import ChatMessage, MessageRole, Prompt
+from almj.utils.image_utils import get_default_image, save_image_from_array
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ class JailbreakMetrics:
         idx: int = None,
         audio_file_dir: Path = None,
     ):
-        if model == "gpt-4o-s2s":
+        if "gpt-4o-realtime" in model:
             audio_out_dir = audio_file_dir / str(idx)
             audio_out_dir.mkdir(parents=True, exist_ok=True)
         else:
@@ -97,7 +100,14 @@ class JailbreakMetrics:
             image_path = row[image_key]
             # if image is not a path, it is a text request for a default image
             if len(image_path.split("/")) == 0 or len(image_path.split(" ")) > 2:
-                raise NotImplementedError("VLM not supported yet")
+                text_in_image = image_path
+                hash_of_text = deterministic_hash(text_in_image)
+                image_path = f"exp/baselines/image/default_images/{hash_of_text}.png"
+                print(f"saving image to {image_path}")
+                if not Path(image_path).exists():
+                    Path(image_path).parent.mkdir(parents=True, exist_ok=True)
+                    image = get_default_image(text_in_image)
+                    save_image_from_array(image, image_path)
 
             messages.append(ChatMessage(role=MessageRole.image, content=image_path))
         if input_key is not None:
@@ -239,6 +249,11 @@ class JailbreakMetrics:
 
         if isinstance(dataset, Path) or isinstance(dataset, str):
             dataset = pd.read_json(dataset, lines=True)
+
+        if model in GPT_CHAT_MODELS:
+            assert (
+                n_samples <= 128
+            ), f"You are using model {model} with n_samples = {n_samples}. This is greater than OpenAI's limit - please reduce n_samples to 128 or less."
 
         dataset = await self.run_inference_over_dataset(
             dataset=dataset,
