@@ -37,7 +37,7 @@ class ExperimentConfigBase:
     anthropic_num_threads: int = 40
     gray_swan_num_threads: int = 40
     huggingface_num_threads: int = 100
-    openai_tag: str = "OPENAI_API_KEY1"
+    openai_tag: str = "OPENAI_API_KEY"
     print_prompt_and_response: bool = False
 
     datetime_str: str = dataclasses.field(init=False)

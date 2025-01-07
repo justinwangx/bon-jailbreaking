@@ -172,7 +172,7 @@ def get_prompt_template_and_parser(
 def setup_environment(
     anthropic_tag: str = "ANTHROPIC_API_KEY",
     logging_level: str = "info",
-    openai_tag: str = "OPENAI_API_KEY1",
+    openai_tag: str = "OPENAI_API_KEY",
 ):
     setup_logging(logging_level)
     secrets = load_secrets("SECRETS")
