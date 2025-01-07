@@ -34,6 +34,7 @@ with the following contents:
 # Required
 OPENAI_API_KEY=<your-key>
 OPENAI_ORG=<openai-org-id>
+ANTHROPIC_API_KEY=<your-key>
 GOOGLE_API_KEY=<your-key>
 GOOGLE_PROJECT_ID=<GCP-project-name>
 GOOGLE_PROJECT_REGION=<GCP-project-region>
