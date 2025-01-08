@@ -153,13 +153,13 @@ class InferenceAPI:
             api_key=secrets["GRAYSWAN_API_KEY"] if "GRAYSWAN_API_KEY" in secrets else None,
         )
 
-        self._gemini_vertex = GeminiVertexAIModel(prompt_history_dir=self.prompt_history_dir)
-        self._gemini_genai = GeminiModel(
-            prompt_history_dir=self.prompt_history_dir,
-            recitation_rate_check_volume=self.gemini_recitation_rate_check_volume,
-            recitation_rate_threshold=self.gemini_recitation_rate_threshold,
-            empty_completion_threshold=self.empty_completion_threshold,
-        )
+        # self._gemini_vertex = GeminiVertexAIModel(prompt_history_dir=self.prompt_history_dir)
+        # self._gemini_genai = GeminiModel(
+        #     prompt_history_dir=self.prompt_history_dir,
+        #     recitation_rate_check_volume=self.gemini_recitation_rate_check_volume,
+        #     recitation_rate_threshold=self.gemini_recitation_rate_threshold,
+        #     empty_completion_threshold=self.empty_completion_threshold,
+        # )
         self._batch_audio_models = {}
 
         # Batched models require GPU and we only want to initialize them if we have a GPU available
