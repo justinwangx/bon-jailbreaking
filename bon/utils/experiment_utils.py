@@ -29,6 +29,7 @@ class ExperimentConfigBase:
     log_to_file: bool = True
     openai_fraction_rate_limit: float = 0.5
     openai_num_threads: int = 100
+    openai_base_url: str | None = None
     gemini_num_threads: int = 100
     openai_s2s_num_threads: int = 40
     gpt4o_s2s_rpm_cap: int = 10
@@ -70,6 +71,7 @@ class ExperimentConfigBase:
             self._api = InferenceAPI(
                 openai_fraction_rate_limit=self.openai_fraction_rate_limit,
                 openai_num_threads=self.openai_num_threads,
+                openai_base_url=self.openai_base_url,
                 gemini_num_threads=self.gemini_num_threads,
                 openai_s2s_num_threads=self.openai_s2s_num_threads,
                 gpt4o_s2s_rpm_cap=self.gpt4o_s2s_rpm_cap,

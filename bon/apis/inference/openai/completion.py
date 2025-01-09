@@ -17,10 +17,22 @@ LOGGER = logging.getLogger(__name__)
 
 class OpenAICompletionModel(OpenAIModel):
     def _assert_valid_id(self, model_id: str):
+        if self.is_local_model:
+            # Skip validation for local models
+            return
         assert model_id in COMPLETION_MODELS, f"Invalid model id: {model_id}"
 
     @retry(stop=stop_after_attempt(8), wait=wait_fixed(2))
     async def _get_dummy_response_header(self, model_id: str):
+        if self.is_local_model:
+            # For local models, return dummy values with high limits
+            return {
+                "x-ratelimit-limit-tokens": "1000000",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-remaining-tokens": "1000000",
+                "x-ratelimit-remaining-requests": "10000",
+            }
+        
         url = "https://api.openai.com/v1/completions"
         api_key = os.environ["OPENAI_API_KEY"]
         headers = {

@@ -77,6 +77,7 @@ class ExperimentConfig(ExperimentConfigBase):
     output_dir: Path
     # lm
     lm_model: str = "gpt-4o-mini"
+    openai_base_url: str | None = None
     n_samples: int = 1
     lm_temperature: float = 1.0
     max_tokens: int = 300

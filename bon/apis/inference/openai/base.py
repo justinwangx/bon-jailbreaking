@@ -60,16 +60,25 @@ class OpenAIModel(InferenceAPIModel):
         self,
         frac_rate_limit: float,
         prompt_history_dir: Path = None,
+        base_url: str | None = None,
     ):
         self.frac_rate_limit = frac_rate_limit
         self.prompt_history_dir = prompt_history_dir
         self.model_ids = set()
-
-        self.aclient = openai.AsyncClient()
-        self.token_capacity = dict()
-        self.request_capacity = dict()
-        self.lock_add = asyncio.Lock()
-        self.lock_consume = asyncio.Lock()
+        self.is_local_model = base_url is not None
+        
+        # Initialize OpenAI client with optional base_url
+        client_kwargs = {}
+        if base_url is not None:
+            client_kwargs['base_url'] = base_url
+        self.aclient = openai.AsyncClient(**client_kwargs)
+        
+        # Only initialize rate limiting for non-local models
+        if not self.is_local_model:
+            self.token_capacity = dict()
+            self.request_capacity = dict()
+            self.lock_add = asyncio.Lock()
+            self.lock_consume = asyncio.Lock()
         self.tokenizer = tiktoken.get_encoding("cl100k_base")
 
     @staticmethod
@@ -132,56 +141,70 @@ class OpenAIModel(InferenceAPIModel):
         **kwargs,
     ) -> list[LLMResponse]:
         start = time.time()
+        LOGGER.info(f"OpenAIModel.__call__ started with model_ids: {model_ids}")
 
         async def attempt_api_call():
-            for model_id in cycle(model_ids):
-                async with self.lock_consume:
-                    request_capacity, token_capacity = (
-                        self.request_capacity[model_id],
-                        self.token_capacity[model_id],
-                    )
-                    if request_capacity.geq(1) and token_capacity.geq(token_count):
-                        request_capacity.consume(1)
-                        token_capacity.consume(token_count)
-                    else:
-                        await asyncio.sleep(0.01)
-                        continue  # Skip this iteration if the condition isn't met
+            LOGGER.info("Entering attempt_api_call")
+            try:
+                # Skip rate limiting for local models
+                if not self.is_local_model:
+                    LOGGER.info("Attempting rate limiting")
+                    for model_id in cycle(model_ids):
+                        async with self.lock_consume:
+                            request_capacity, token_capacity = (
+                                self.request_capacity[model_id],
+                                self.token_capacity[model_id],
+                            )
+                            if request_capacity.geq(1) and token_capacity.geq(token_count):
+                                request_capacity.consume(1)
+                                token_capacity.consume(token_count)
+                                break
+                            else:
+                                await asyncio.sleep(0.01)
+                                continue
+                
+                LOGGER.info("About to make API call")
+                result = await self._make_api_call(prompt, model_ids[0], start, **kwargs)
+                LOGGER.info("API call completed")
+                return result
+            except Exception as e:
+                LOGGER.error(f"Error in attempt_api_call: {str(e)}")
+                raise
 
-                # Make the API call outside the lock
-                return await asyncio.wait_for(
-                    self._make_api_call(prompt, model_id, start, **kwargs),
-                    timeout=90,
-                )
-
-        model_ids = tuple(
-            sorted(model_ids, key=lambda model_id: price_per_token(model_id))
-        )  # Default to cheapest model
-        async with self.lock_add:
-            for model_id in model_ids:
-                await self.add_model_id(model_id)
+        # For local models, skip rate limit initialization
+        if not self.is_local_model:
+            LOGGER.info("Initializing rate limits")
+            model_ids = tuple(sorted(model_ids, key=lambda model_id: price_per_token(model_id)))
+            async with self.lock_add:
+                for model_id in model_ids:
+                    LOGGER.info(f"Adding model_id: {model_id}")
+                    await self.add_model_id(model_id)
+        
+        LOGGER.info("Counting tokens")
         token_count = self._count_prompt_token_capacity(prompt, **kwargs)
-        assert (
-            max(self.token_capacity[model_id].refresh_rate for model_id in model_ids) >= token_count
-        ), "Prompt is too long for any model to handle."
+        
+        if not self.is_local_model:
+            assert (
+                max(self.token_capacity[model_id].refresh_rate for model_id in model_ids) >= token_count
+            ), "Prompt is too long for any model to handle."
+
         responses: Optional[list[LLMResponse]] = None
         for i in range(max_attempts):
             try:
+                LOGGER.info(f"Attempt {i+1}/{max_attempts}")
                 responses = await attempt_api_call()
                 if responses is not None and not all(is_valid(response.completion) for response in responses):
                     raise RuntimeError(f"Invalid responses according to is_valid {responses}")
-            except Exception as e:
-                error_info = f"Exception Type: {type(e).__name__}, Error Details: {str(e)}, Traceback: {format_exc()}"
-                LOGGER.warn(f"Encountered API error: {error_info}.\nRetrying now. (Attempt {i})")
-                await asyncio.sleep(1.5**i)
-            else:
                 break
+            except Exception as e:
+                LOGGER.warn(f"Encountered API error: {str(e)}. Retrying now. (Attempt {i})")
+                await asyncio.sleep(1.5**i)
 
         if responses is None:
             raise RuntimeError(f"Failed to get a response from the API after {max_attempts} attempts.")
 
         if print_prompt_and_response:
-            prompt.pretty_print(responses)
+            self._print_prompt_and_response(prompt, responses)
 
-        end = time.time()
-        LOGGER.debug(f"Completed call to {model_id} in {end - start}s.")
+        LOGGER.info("OpenAIModel.__call__ completed")
         return responses

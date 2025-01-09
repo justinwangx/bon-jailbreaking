@@ -62,6 +62,7 @@ class InferenceAPI:
         anthropic_num_threads: int = 80,
         openai_fraction_rate_limit: float = 0.8,
         openai_num_threads: int = 100,
+        openai_base_url: str | None = None,
         openai_s2s_num_threads: int = 40,
         gpt4o_s2s_rpm_cap: int = 10,
         gemini_num_threads: int = 120,
@@ -121,14 +122,18 @@ class InferenceAPI:
         if self.cache_dir is not None:
             self.cache_manager = CacheManager(self.cache_dir)
 
+        self.openai_base_url = openai_base_url
+
         self._openai_completion = OpenAICompletionModel(
             frac_rate_limit=self.openai_fraction_rate_limit,
             prompt_history_dir=self.prompt_history_dir,
+            base_url=self.openai_base_url,
         )
 
         self._openai_chat = OpenAIChatModel(
             frac_rate_limit=self.openai_fraction_rate_limit,
             prompt_history_dir=self.prompt_history_dir,
+            base_url=self.openai_base_url,
         )
 
         self._openai_moderation = OpenAIModerationModel()

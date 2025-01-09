@@ -20,12 +20,25 @@ LOGGER = logging.getLogger(__name__)
 
 class OpenAIChatModel(OpenAIModel):
     def _assert_valid_id(self, model_id: str):
+        if self.is_local_model:
+            # Skip validation for local models
+            return
         if "ft:" in model_id:
             model_id = model_id.split(":")[1]
         assert model_id in GPT_CHAT_MODELS, f"Invalid model id: {model_id}"
 
     @retry(stop=stop_after_attempt(8), wait=wait_fixed(2))
     async def _get_dummy_response_header(self, model_id: str):
+        if self.is_local_model:
+            # For local models, return dummy values with high limits
+            return {
+                "x-ratelimit-limit-tokens": "1000000",
+                "x-ratelimit-limit-requests": "10000",
+                "x-ratelimit-remaining-tokens": "1000000",
+                "x-ratelimit-remaining-requests": "10000",
+            }
+            
+        # Original code for OpenAI API...
         url = "https://api.openai.com/v1/chat/completions"
         api_key = os.environ["OPENAI_API_KEY"]
         headers = {
@@ -82,9 +95,10 @@ class OpenAIChatModel(OpenAIModel):
         return top_logprobs
 
     async def _make_api_call(self, prompt: Prompt, model_id, start_time, **params) -> list[LLMResponse]:
-        LOGGER.debug(f"Making {model_id} call")
+        LOGGER.info(f"Making {model_id} call")
 
-        if prompt.contains_image():
+        # Skip image validation for local models
+        if not self.is_local_model and prompt.contains_image():
             assert model_id in VISION_MODELS, f"Model {model_id} does not support images"
 
         # convert completion logprobs api to chat logprobs api
@@ -94,15 +108,30 @@ class OpenAIChatModel(OpenAIModel):
 
         prompt_file = self.create_prompt_history_file(prompt, model_id, self.prompt_history_dir)
         api_start = time.time()
-        api_response: openai.types.chat.ChatCompletion = await self.aclient.chat.completions.create(
-            messages=prompt.openai_format(),
-            model=model_id,
-            **params,
-        )
+        
+        try:
+            LOGGER.info("About to call chat.completions.create")
+            api_response: openai.types.chat.ChatCompletion = await self.aclient.chat.completions.create(
+                messages=prompt.openai_format(),
+                model=model_id,
+                **params,
+            )
+            LOGGER.info("chat.completions.create completed")
+        except Exception as e:
+            LOGGER.error(f"Error in chat.completions.create: {str(e)}")
+            raise
+
         api_duration = time.time() - api_start
         duration = time.time() - start_time
-        context_token_cost, completion_token_cost = price_per_token(model_id)
-        context_cost = api_response.usage.prompt_tokens * context_token_cost
+        
+        # Set costs to 0 for local models
+        if self.is_local_model:
+            context_cost = 0
+            completion_token_cost = 0
+        else:
+            context_token_cost, completion_token_cost = price_per_token(model_id)
+            context_cost = api_response.usage.prompt_tokens * context_token_cost
+        
         responses = [
             LLMResponse(
                 model_id=model_id,
@@ -110,7 +139,7 @@ class OpenAIChatModel(OpenAIModel):
                 stop_reason=choice.finish_reason,
                 api_duration=api_duration,
                 duration=duration,
-                cost=context_cost + self.count_tokens(choice.message.content) * completion_token_cost,
+                cost=context_cost + (self.count_tokens(choice.message.content) * completion_token_cost if not self.is_local_model else 0),
                 logprobs=(self.convert_top_logprobs(choice.logprobs) if choice.logprobs is not None else None),
             )
             for choice in api_response.choices

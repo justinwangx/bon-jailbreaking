@@ -55,7 +55,10 @@ _GPT_3_MODELS = (
     "gpt-3.5-turbo-16k",
     "gpt-3.5-turbo-16k-0613",
 )
-GPT_CHAT_MODELS = set(_GPT_4_MODELS + _GPT_3_MODELS)
+LOCAL_MODELS = {
+    "GraySwanAI/Llama-3-8B-Instruct-RR",
+}
+GPT_CHAT_MODELS = set(_GPT_4_MODELS + _GPT_3_MODELS) | LOCAL_MODELS
 
 S2S_MODELS = ("gpt-4o-realtime-preview-2024-10-01",)
 
