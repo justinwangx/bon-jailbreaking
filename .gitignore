@@ -27,6 +27,10 @@ data/RIRS_NOISES
 *.gz
 *.zip
 
+# fschat
+controller.log
+model_worker*.log
+
 # IDE stuff.
 .idea/
 .vscode/
