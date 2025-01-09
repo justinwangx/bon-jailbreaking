@@ -374,7 +374,8 @@ async def get_classifier_output(
 
     response = await get_classifier_response(
         input_obj,
-        "gpt-4o",
+        # "gpt-4o",
+        "HarmBench-Llama-2-13b-cls", # don't use the gpt-4o classifier
         api,
         "harmbench/harmbench-gpt-4.jinja",
         dict(behavior="behavior_str", assistant_response="response"),

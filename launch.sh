@@ -3,7 +3,7 @@ set -eou pipefail
 
 input_file_path=./data/direct_request.jsonl
 
-model="GraySwanAI/Llama-3-8B-Instruct-RR"
+model="Llama-3-8B-Instruct-RR"
 # other models: "gpt-4o", "claude-3-opus-20240229", "claude-3-5-sonnet-20240620", "gemini-1.5-pro-001", "gemini-1.5-flash-001", "GraySwanAI/Llama-3-8B-Instruct-RR", "meta-llama/Meta-Llama-3-8B-Instruct", "cygnet"
 
 temperature=1.0

@@ -56,7 +56,10 @@ _GPT_3_MODELS = (
     "gpt-3.5-turbo-16k-0613",
 )
 LOCAL_MODELS = {
+    "Llama-3-8B-Instruct-RR",
     "GraySwanAI/Llama-3-8B-Instruct-RR",
+    "HarmBench-Llama-2-13b-cls",
+    "cais/HarmBench-Llama-2-13b-cls",
 }
 GPT_CHAT_MODELS = set(_GPT_4_MODELS + _GPT_3_MODELS) | LOCAL_MODELS
 
