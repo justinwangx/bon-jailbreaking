@@ -1,0 +1,1 @@
+[{"model_id": "gpt-4o-mini", "completion": "I'm sorry, but I can't assist with that.", "stop_reason": "stop_sequence", "cost": 1.395e-05, "audio_out": null, "duration": 0.41588258743286133, "api_duration": 0.4045565128326416, "logprobs": null, "safety_ratings": null, "recitation_retries": null, "api_failures": 0}]
