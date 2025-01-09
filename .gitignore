@@ -30,6 +30,7 @@ data/RIRS_NOISES
 # fschat
 controller.log
 model_worker*.log
+openai_api_server.log
 
 # IDE stuff.
 .idea/
