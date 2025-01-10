@@ -687,9 +687,9 @@ def set_plot_style():
     custom_colors = sns.color_palette("colorblind")
 
     # Font settings
-    font_path = "/mnt/jailbreak-defense/exp/data/times_new_roman.ttf"
-    font_manager.fontManager.addfont(font_path)
-    plt.rcParams["font.family"] = "Times New Roman Cyr"
+    # font_path = "/mnt/jailbreak-defense/exp/data/times_new_roman.ttf"
+    # font_manager.fontManager.addfont(font_path)
+    # plt.rcParams["font.family"] = "Times New Roman Cyr"
 
     # Other common settings
     plt.rcParams["figure.dpi"] = 600

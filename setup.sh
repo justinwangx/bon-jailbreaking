@@ -8,3 +8,4 @@ git clone https://github.com/lm-sys/FastChat.git
 cd FastChat
 pip install -e ".[model_worker]"
 cd ../bon-jailbreaking
+pip install -e .

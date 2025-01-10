@@ -74,6 +74,7 @@ pytest-asyncio==0.25.0
 pytest-xdist==3.6.1
 
 # Misc utilities
+augment
 opencv-python
 termcolor==2.5.0
 tqdm==4.66.5
