@@ -34,6 +34,16 @@ class JailbreakVerifier:
         # Sort by behavior_id, then a, then b
         self.jailbreak_data.sort(key=lambda x: (x['behavior_id'], x['a'], x['b']))
     
+    def find_next_behavior_index(self, current_index):
+        if current_index >= len(self.jailbreak_data) - 1:
+            return None
+        
+        current_behavior = self.jailbreak_data[current_index]['behavior_id']
+        for i in range(current_index + 1, len(self.jailbreak_data)):
+            if self.jailbreak_data[i]['behavior_id'] > current_behavior:
+                return i
+        return None
+    
     def log_false_positive(self, behavior_id, a, b):
         file_exists = self.fp_log_file.exists()
         with open(self.fp_log_file, 'a', newline='') as f:
@@ -57,13 +67,17 @@ def main():
         st.session_state.current_index = 0
     
     # Navigation buttons
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3, col4 = st.columns([1,1,1,1])
     with col1:
         if st.button("Previous") and st.session_state.current_index > 0:
             st.session_state.current_index -= 1
-    with col3:
+    with col2:
         if st.button("Next") and st.session_state.current_index < len(verifier.jailbreak_data) - 1:
             st.session_state.current_index += 1
+    with col4:
+        next_behavior_index = verifier.find_next_behavior_index(st.session_state.current_index)
+        if st.button("Next Behavior") and next_behavior_index is not None:
+            st.session_state.current_index = next_behavior_index
     
     # Statistics
     total_jailbreaks = len(verifier.jailbreak_data)
