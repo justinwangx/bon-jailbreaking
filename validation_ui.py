@@ -10,7 +10,31 @@ class JailbreakVerifier:
         self.base_dir = Path(base_dir)
         self.jailbreak_data = []
         self.fp_log_file = self.base_dir / "false_positives.csv"
+        self.verified_log_file = self.base_dir / "verified_entries.csv"
+        self.verified_entries = self.load_verified_entries()
         self.load_jailbreaks()
+    
+    def load_verified_entries(self):
+        verified = set()
+        if self.verified_log_file.exists():
+            with open(self.verified_log_file, 'r') as f:
+                reader = csv.reader(f)
+                next(reader)  # Skip header
+                for row in reader:
+                    verified.add((int(row[0]), int(row[1]), int(row[2])))
+        return verified
+    
+    def mark_as_verified(self, behavior_id, a, b):
+        # Add to set
+        self.verified_entries.add((behavior_id, a, b))
+        
+        # Append to CSV
+        file_exists = self.verified_log_file.exists()
+        with open(self.verified_log_file, 'a', newline='') as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(['behavior_id', 'a', 'b', 'timestamp'])
+            writer.writerow([behavior_id, a, b, datetime.now().isoformat()])
     
     def load_jailbreaks(self):
         for n in range(159):
@@ -23,12 +47,14 @@ class JailbreakVerifier:
                     a, b = map(int, jb_file.split('jailbreak_')[1].split('.txt')[0].split('_'))
                     response_file = prompts_dir / str(a) / str(b) / "classifier_responses_1.json"
                     if response_file.exists():
+                        is_verified = (n, a, b) in self.verified_entries
                         self.jailbreak_data.append({
                             'behavior_id': n,
                             'a': a,
                             'b': b,
                             'response_file': response_file,
-                            'data': json.loads(response_file.read_text())[0]
+                            'data': json.loads(response_file.read_text())[0],
+                            'verified': is_verified
                         })
         
         # Sort by behavior_id, then a, then b
@@ -83,12 +109,15 @@ def main():
     total_jailbreaks = len(verifier.jailbreak_data)
     false_positives = sum(1 for item in verifier.jailbreak_data 
                          if item['data']['classifier_outputs'][0] == "No")
+    verified_count = len(verifier.verified_entries)
     
     if total_jailbreaks > 0:
         fp_rate = (false_positives / total_jailbreaks) * 100
+        progress_rate = (verified_count / total_jailbreaks) * 100
         st.sidebar.markdown(f"""
         ### Statistics
         - Total Jailbreaks: {total_jailbreaks}
+        - Verified: {verified_count} ({progress_rate:.1f}%)
         - False Positives: {false_positives}
         - FP Rate: {fp_rate:.1f}%
         """)
@@ -107,7 +136,8 @@ def main():
         st.markdown(f"""
         **Progress:** {st.session_state.current_index + 1} of {len(verifier.jailbreak_data)}  
         **Behavior ID:** {item['behavior_id']} ({current_behavior_index} of {behavior_jailbreaks} jailbreaks)  
-        **File Location:** prompts/{item['a']}/{item['b']}/classifier_responses_1.json
+        **File Location:** prompts/{item['a']}/{item['b']}/classifier_responses_1.json  
+        **Verified:** {"Yes" if item['verified'] else "No"}
         """)
         
         st.subheader("Behavior:")
@@ -120,16 +150,28 @@ def main():
         st.subheader("Response:")
         st.text_area("", item['data']['response'], height=300, key="response", disabled=True)
         
-        if st.button("Toggle Classification"):
-            new_value = "No" if current_class == "Yes" else "Yes"
-            save_classification(item['response_file'], item['data'], new_value)
-            # Log false positive when toggling to "No"
-            if new_value == "No":
-                verifier.log_false_positive(item['behavior_id'], item['a'], item['b'])
-            # Advance to next item if not at the end
-            if st.session_state.current_index < len(verifier.jailbreak_data) - 1:
-                st.session_state.current_index += 1
-            st.rerun()
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Toggle Classification"):
+                new_value = "No" if current_class == "Yes" else "Yes"
+                save_classification(item['response_file'], item['data'], new_value)
+                # Log false positive when toggling to "No"
+                if new_value == "No":
+                    verifier.log_false_positive(item['behavior_id'], item['a'], item['b'])
+                # Mark as verified
+                verifier.mark_as_verified(item['behavior_id'], item['a'], item['b'])
+                # Advance to next item if not at the end
+                if st.session_state.current_index < len(verifier.jailbreak_data) - 1:
+                    st.session_state.current_index += 1
+                st.rerun()
+        
+        with col2:
+            if st.button("Mark as Verified (No Change)"):
+                verifier.mark_as_verified(item['behavior_id'], item['a'], item['b'])
+                # Advance to next item if not at the end
+                if st.session_state.current_index < len(verifier.jailbreak_data) - 1:
+                    st.session_state.current_index += 1
+                st.rerun()
         
         # Direct navigation at bottom
         st.markdown("---")
