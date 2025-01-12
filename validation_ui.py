@@ -30,6 +30,9 @@ class JailbreakVerifier:
                             'response_file': response_file,
                             'data': json.loads(response_file.read_text())[0]
                         })
+        
+        # Sort by behavior_id, then a, then b
+        self.jailbreak_data.sort(key=lambda x: (x['behavior_id'], x['a'], x['b']))
     
     def log_false_positive(self, behavior_id, a, b):
         file_exists = self.fp_log_file.exists()
