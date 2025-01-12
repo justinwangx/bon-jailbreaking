@@ -97,10 +97,16 @@ def main():
     if verifier.jailbreak_data:
         item = verifier.jailbreak_data[st.session_state.current_index]
         
+        # Count jailbreaks for current behavior
+        current_behavior_id = item['behavior_id']
+        behavior_jailbreaks = sum(1 for x in verifier.jailbreak_data if x['behavior_id'] == current_behavior_id)
+        current_behavior_index = sum(1 for x in verifier.jailbreak_data[:st.session_state.current_index + 1] 
+                                  if x['behavior_id'] == current_behavior_id)
+        
         # Progress indicator with file information
         st.markdown(f"""
         **Progress:** {st.session_state.current_index + 1} of {len(verifier.jailbreak_data)}  
-        **Behavior ID:** {item['behavior_id']}  
+        **Behavior ID:** {item['behavior_id']} ({current_behavior_index} of {behavior_jailbreaks} jailbreaks)  
         **File Location:** prompts/{item['a']}/{item['b']}/classifier_responses_1.json
         """)
         
