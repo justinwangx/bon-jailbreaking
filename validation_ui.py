@@ -53,7 +53,7 @@ def main():
     if 'current_index' not in st.session_state:
         st.session_state.current_index = 0
     
-    # Navigation
+    # Navigation buttons
     col1, col2, col3 = st.columns([1,2,1])
     with col1:
         if st.button("Previous") and st.session_state.current_index > 0:
@@ -90,11 +90,11 @@ def main():
         st.subheader("Behavior:")
         st.text_area("", item['data']['behavior_str'], height=100, key="behavior", disabled=True)
         
-        st.subheader("Response:")
-        st.text_area("", item['data']['response'], height=150, key="response", disabled=True)
-        
         current_class = item['data']['classifier_outputs'][0]
         st.write(f"Current Classification: {current_class}")
+        
+        st.subheader("Response:")
+        st.text_area("", item['data']['response'], height=300, key="response", disabled=True)
         
         if st.button("Toggle Classification"):
             new_value = "No" if current_class == "Yes" else "Yes"
@@ -106,6 +106,21 @@ def main():
             if st.session_state.current_index < len(verifier.jailbreak_data) - 1:
                 st.session_state.current_index += 1
             st.rerun()
+        
+        # Direct navigation at bottom
+        st.markdown("---")
+        col1, col2, col3 = st.columns([1,2,1])
+        with col2:
+            new_index = st.number_input(
+                "Go to index:",
+                min_value=1,
+                max_value=len(verifier.jailbreak_data),
+                value=st.session_state.current_index + 1,
+                step=1
+            )
+            if new_index != st.session_state.current_index + 1:
+                st.session_state.current_index = new_index - 1
+                st.rerun()
 
 if __name__ == "__main__":
     main()
