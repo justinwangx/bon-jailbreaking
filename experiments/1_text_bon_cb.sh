@@ -8,9 +8,9 @@ model="Llama-3-8B-Instruct-RR"
 temperature=1.0
 
 # note that overall N = num_concurrent_k * n_steps
-num_concurrent_k=10 # in paper this is 60
-n_steps=8 # in paper this is 120
-request_ids=$(seq 0 10) # This is a set of easy ids for quick replication, for full set use $(seq 0 158)
+num_concurrent_k=50 # in paper this is 60
+n_steps=200 # in paper this is 120
+request_ids=$(seq 0 158) # This is a set of easy ids for quick replication, for full set use $(seq 0 158)
 
 # turn down to avoid rate limiting
 gemini_num_threads=10
@@ -26,10 +26,10 @@ for choose_specific_id in $request_ids; do
 
     output_dir=./exp/bon/text/${model_str}/${choose_specific_id}
 
-    if [ -f $output_dir/done_$n_steps ]; then
-        echo "Skipping $output_dir because it is already done"
-        continue
-    fi
+    # if [ -f $output_dir/done_$n_steps ]; then
+    #     echo "Skipping $output_dir because it is already done"
+    #     continue
+    # fi
 
     python -m bon.attacks.run_text_bon \
         --input_file_path $input_file_path \
@@ -41,5 +41,7 @@ for choose_specific_id in $request_ids; do
         --lm_temperature $temperature \
         --choose_specific_id $choose_specific_id \
         --num_concurrent_k $num_concurrent_k \
-        --n_steps $n_steps
+        --n_steps $n_steps \
+        --force_run True \
+        --run_batch True
 done

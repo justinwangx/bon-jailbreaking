@@ -695,10 +695,10 @@ async def main(cfg: ExperimentConfig):
         start_step = len(results)
         best_asr_global = max(results, key=lambda x: x.best_asr).best_asr
 
-        if best_asr_global >= cfg.asr_threshold:
-            print(f"ASR threshold reached: {cfg.asr_threshold}")
-            done_file.touch()
-            return
+        # if best_asr_global >= cfg.asr_threshold:
+        #     print(f"ASR threshold reached: {cfg.asr_threshold}")
+        #     done_file.touch()
+        #     return
         if start_step == cfg.n_steps - 1:
             print("Reached the maximum number of steps")
             done_file.touch()

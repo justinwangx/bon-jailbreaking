@@ -477,10 +477,10 @@ async def main(cfg: ExperimentConfig):
                 f"[{result.n+1}/{cfg.n_steps}] Best augmentation: {result.best_augmentation} with ASR: {result.best_asr*100:.2f}%"
             )
 
-        if best_asr_global >= cfg.asr_threshold and not cfg.run_batch:
-            print(f"ASR threshold reached: {cfg.asr_threshold}")
-            done_file.touch()
-            return
+        # if best_asr_global >= cfg.asr_threshold and not cfg.run_batch:
+        #     print(f"ASR threshold reached: {cfg.asr_threshold}")
+        #     done_file.touch()
+        #     return
         if start_step == cfg.n_steps - 1:
             print("Reached the maximum number of steps")
             done_file.touch()
