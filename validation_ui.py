@@ -94,7 +94,8 @@ def main():
         st.text_area("", item['data']['behavior_str'], height=100, key="behavior", disabled=True)
         
         current_class = item['data']['classifier_outputs'][0]
-        st.write(f"Current Classification: {current_class}")
+        color = "red" if current_class == "Yes" else "green"
+        st.markdown(f"Current Classification: :{color}[**{current_class}**]")
         
         st.subheader("Response:")
         st.text_area("", item['data']['response'], height=300, key="response", disabled=True)
